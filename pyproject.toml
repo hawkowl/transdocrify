@@ -1,0 +1,3 @@
+[tool.poetry]
+name = "transdocrify"
+version = "0.1"
