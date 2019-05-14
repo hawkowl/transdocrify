@@ -20,17 +20,15 @@ def process_from_epydoc_to_sphinx(fle, imp):
 
     class Vis(NodeVisitor):
         def visit_FunctionDef(self, node, indent=4):
-
             if len(node.body) > 0 and isinstance(node.body[0], ast.Expr):
                 potential_docstring = node.body[0]
                 if isinstance(potential_docstring.value, ast.Str):
-                    doc = "\n".join(f[node.lineno : potential_docstring.lineno]).split(
-                        '"""'
-                    )[1]
+                    doc = "\n".join(f[node.lineno : potential_docstring.lineno])
+                    doc = doc.split('"""')[1]
                     length = len(doc.split("\n"))
 
                     if doc[0] != "\n":
-                        doc = " " * (node.col_offset + 4) + s
+                        doc = " " * (node.col_offset + 4) + doc
                         length -= 1
                     if doc[-1] != "\n":
                         length -= 1
@@ -65,29 +63,21 @@ def process_from_epydoc_to_sphinx(fle, imp):
 
         err = []
         parsed = parse_docstring(i["content"], err).split_fields()
-
         err = [x for x in err if x.is_fatal()]
 
         if err:
             print("")
             print("Errors, skipping " + fle.path + ":" + str(i["line_no"]))
+            print(err)
             i["new_content"] = i["content"]
             continue
-
-        content = []
-        if parsed[0]:
-            content.append(parsed[0].to_plaintext(None).strip())
-            content.append("")
 
         def dump(t):
             resp = []
             if not t._tree.children:
                 return ""
 
-            print(t._tree.children)
-
             for child in t._tree.children:
-
                 if child.tag == "para":
                     for i in child.children:
                         if isinstance(i, (str, unicode)):
@@ -111,6 +101,8 @@ def process_from_epydoc_to_sphinx(fle, imp):
                             continue
 
                         raise Exception(i.tag)
+
+                    resp.append("\n\n")
                 elif child.tag == "literalblock":
                     resp.append(":\n\n   ```\n" + child.children[0] + "\n   ```")
 
@@ -119,6 +111,11 @@ def process_from_epydoc_to_sphinx(fle, imp):
                     raise Exception(child.tag)
 
             return "".join(resp)
+
+        content = []
+        if parsed[0]:
+            content.append(dump(parsed[0]))
+            content.append("")
 
         for x in parsed[1]:
 
