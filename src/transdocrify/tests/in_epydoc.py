@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+
 def cmd(arg1, arg2):
     """
     This is a command that does things. Yay!
